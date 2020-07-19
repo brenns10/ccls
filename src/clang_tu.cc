@@ -21,9 +21,10 @@ using namespace llvm;
 
 namespace ccls {
 std::string pathFromFileEntry(const FileEntry &file) {
-  SmallString<128> path(file.getName());
-  sys::path::remove_dots(path, /*remove_dot_dot=*/true);
-  std::string ret(path.str());
+  StringRef name = file.tryGetRealPathName();
+  if (name.empty())
+    name = file.getName();
+  std::string ret = normalizePath(name);
   // Resolve symlinks outside of workspace folders, e.g. /usr/include/c++/7.3.0
   return normalizeFolder(ret) ? ret : realPath(ret);
 }
